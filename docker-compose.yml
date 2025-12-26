@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tsunagu-postgres
+    environment:
+      POSTGRES_USER: tsunagu
+      POSTGRES_PASSWORD: tsunagu_password
+      POSTGRES_DB: tsunagu_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsunagu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tsunagu-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: tsunagu
+      DB_PASSWORD: tsunagu_password
+      DB_NAME: tsunagu_db
+      SERVER_PORT: 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: ["./bin/server"]
+
+volumes:
+  postgres_data:
