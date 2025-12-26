@@ -10,6 +10,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     services:
       postgres:
@@ -43,8 +46,11 @@ jobs:
         run: go mod verify
 
       - name: Run tests
+        id: test
+        continue-on-error: true
         run: |
-          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./... 2>&1 | tee test-output.txt
+          echo "result=$?" >> $GITHUB_OUTPUT
         env:
           DB_HOST: localhost
           DB_PORT: 5432
@@ -55,7 +61,88 @@ jobs:
           JWT_SECRET: test-secret-key
           JWT_EXPIRY_HOURS: 24
 
+      - name: Comment test results on PR
+        if: failure() && github.event_name == 'pull_request' && steps.test.outputs.result != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const testOutput = fs.readFileSync('test-output.txt', 'utf8');
+
+            // Extract only failed tests and errors
+            const lines = testOutput.split('\n');
+            const failures = [];
+            let captureError = false;
+
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              if (line.includes('FAIL:') || line.includes('--- FAIL:')) {
+                captureError = true;
+                failures.push(line);
+              } else if (captureError) {
+                if (line.trim() === '' || line.includes('FAIL') || line.includes('PASS')) {
+                  captureError = false;
+                } else {
+                  failures.push(line);
+                }
+              }
+            }
+
+            const failureText = failures.length > 0
+              ? failures.slice(0, 100).join('\n')  // Limit to 100 lines
+              : testOutput.slice(-3000);  // Last 3000 chars if no specific failures found
+
+            const body = `## ❌ Test Failed
+
+            <details>
+            <summary>Test Failure Details</summary>
+
+            \`\`\`
+            ${failureText}
+            \`\`\`
+
+            </details>
+
+            ---
+            *This comment will be automatically updated on subsequent CI runs.*
+            <!-- CI-TEST-RESULTS -->`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('<!-- CI-TEST-RESULTS -->')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Fail job if tests failed
+        if: steps.test.outputs.result != '0'
+        run: exit 1
+
       - name: Upload coverage to Codecov
+        if: steps.test.outputs.result == '0'
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.out
@@ -67,6 +154,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -78,15 +168,94 @@ jobs:
           go-version: '1.24.7'
           cache: true
 
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        id: lint
+        continue-on-error: true
+        run: |
+          golangci-lint run --timeout=5m --out-format=line-number > lint-output.txt 2>&1 || echo "exit_code=$?" >> $GITHUB_OUTPUT
+          exit_code=$?
+          echo "result=$exit_code" >> $GITHUB_OUTPUT
+          exit $exit_code
+
+      - name: Comment lint results on PR
+        if: failure() && github.event_name == 'pull_request' && steps.lint.outputs.result != '0'
+        uses: actions/github-script@v7
         with:
-          version: latest
-          args: --timeout=5m
+          script: |
+            const fs = require('fs');
+            let lintOutput = '';
+            try {
+              lintOutput = fs.readFileSync('lint-output.txt', 'utf8');
+            } catch (error) {
+              lintOutput = 'Unable to read lint output';
+            }
+
+            // Limit output length
+            const maxLength = 4000;
+            const truncatedOutput = lintOutput.length > maxLength
+              ? lintOutput.slice(0, maxLength) + '\n\n... (output truncated)'
+              : lintOutput;
+
+            const body = `## ⚠️ Lint Failed
+
+            <details>
+            <summary>Lint Errors</summary>
+
+            \`\`\`
+            ${truncatedOutput}
+            \`\`\`
+
+            </details>
+
+            ---
+            *This comment will be automatically updated on subsequent CI runs.*
+            <!-- CI-LINT-RESULTS -->`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('<!-- CI-LINT-RESULTS -->')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Fail job if lint failed
+        if: steps.lint.outputs.result != '0'
+        run: exit 1
 
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -102,9 +271,84 @@ jobs:
         run: go mod download
 
       - name: Build
-        run: go build -v -o bin/server ./cmd/server
+        id: build
+        continue-on-error: true
+        run: |
+          go build -v -o bin/server ./cmd/server 2>&1 | tee build-output.txt
+          exit_code=$?
+          echo "result=$exit_code" >> $GITHUB_OUTPUT
+          exit $exit_code
+
+      - name: Comment build results on PR
+        if: failure() && github.event_name == 'pull_request' && steps.build.outputs.result != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let buildOutput = '';
+            try {
+              buildOutput = fs.readFileSync('build-output.txt', 'utf8');
+            } catch (error) {
+              buildOutput = 'Unable to read build output';
+            }
+
+            // Limit output length
+            const maxLength = 4000;
+            const truncatedOutput = buildOutput.length > maxLength
+              ? buildOutput.slice(0, maxLength) + '\n\n... (output truncated)'
+              : buildOutput;
+
+            const body = `## 🔨 Build Failed
+
+            <details>
+            <summary>Build Errors</summary>
+
+            \`\`\`
+            ${truncatedOutput}
+            \`\`\`
+
+            </details>
+
+            ---
+            *This comment will be automatically updated on subsequent CI runs.*
+            <!-- CI-BUILD-RESULTS -->`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('<!-- CI-BUILD-RESULTS -->')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Fail job if build failed
+        if: steps.build.outputs.result != '0'
+        run: exit 1
 
       - name: Upload artifact
+        if: steps.build.outputs.result == '0'
         uses: actions/upload-artifact@v4
         with:
           name: server-binary
