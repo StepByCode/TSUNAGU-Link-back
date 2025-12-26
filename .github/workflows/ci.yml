@@ -92,10 +92,10 @@ jobs:
               ? failures.slice(0, 100).join('\n')  // Limit to 100 lines
               : testOutput.slice(-3000);  // Last 3000 chars if no specific failures found
 
-            const body = `## ❌ Test Failed
+            const body = `## ❌ テスト失敗
 
             <details>
-            <summary>Test Failure Details</summary>
+            <summary>テスト失敗の詳細</summary>
 
             \`\`\`
             ${failureText}
@@ -104,7 +104,7 @@ jobs:
             </details>
 
             ---
-            *This comment will be automatically updated on subsequent CI runs.*
+            *このコメントは以降のCI実行時に自動更新されます。*
             <!-- CI-TEST-RESULTS -->`;
 
             // Find existing comment
@@ -198,13 +198,13 @@ jobs:
             // Limit output length
             const maxLength = 4000;
             const truncatedOutput = lintOutput.length > maxLength
-              ? lintOutput.slice(0, maxLength) + '\n\n... (output truncated)'
+              ? lintOutput.slice(0, maxLength) + '\n\n... (出力が省略されました)'
               : lintOutput;
 
-            const body = `## ⚠️ Lint Failed
+            const body = `## ⚠️ Lint失敗
 
             <details>
-            <summary>Lint Errors</summary>
+            <summary>Lintエラーの詳細</summary>
 
             \`\`\`
             ${truncatedOutput}
@@ -213,7 +213,7 @@ jobs:
             </details>
 
             ---
-            *This comment will be automatically updated on subsequent CI runs.*
+            *このコメントは以降のCI実行時に自動更新されます。*
             <!-- CI-LINT-RESULTS -->`;
 
             // Find existing comment
@@ -295,13 +295,13 @@ jobs:
             // Limit output length
             const maxLength = 4000;
             const truncatedOutput = buildOutput.length > maxLength
-              ? buildOutput.slice(0, maxLength) + '\n\n... (output truncated)'
+              ? buildOutput.slice(0, maxLength) + '\n\n... (出力が省略されました)'
               : buildOutput;
 
-            const body = `## 🔨 Build Failed
+            const body = `## 🔨 ビルド失敗
 
             <details>
-            <summary>Build Errors</summary>
+            <summary>ビルドエラーの詳細</summary>
 
             \`\`\`
             ${truncatedOutput}
@@ -310,7 +310,7 @@ jobs:
             </details>
 
             ---
-            *This comment will be automatically updated on subsequent CI runs.*
+            *このコメントは以降のCI実行時に自動更新されます。*
             <!-- CI-BUILD-RESULTS -->`;
 
             // Find existing comment
