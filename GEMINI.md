@@ -43,3 +43,12 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 - Load entire `.kiro/steering/` as project memory
 - Default files: `product.md`, `tech.md`, `structure.md`
 - Custom files are supported (managed via `/kiro:steering-custom`)
+
+## Note on Claude Code Subagents
+
+This project includes Claude Code-specific subagent implementations (`.claude/agents/`) for quality assurance:
+- **spec-validator**: Requirements & specification validation
+- **design-reviewer**: Technical design review
+- **implementation-auditor**: Implementation verification
+
+These are Claude Code features and may not be directly available in Gemini Code Assist. Gemini users should use the standard `/kiro:validate-*` slash commands for validation tasks.
