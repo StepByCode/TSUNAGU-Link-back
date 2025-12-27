@@ -43,3 +43,37 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 - Load entire `.kiro/steering/` as project memory
 - Default files: `product.md`, `tech.md`, `structure.md`
 - Custom files are supported (managed via `/kiro:steering-custom`)
+
+## Subagent-based Quality Assurance
+
+This project uses Claude Code's subagent functionality for specialized validation tasks.
+
+### Available Subagents (`.claude/agents/`)
+
+1. **spec-validator** - Requirements & specification validation
+   - Validates completeness and clarity of specifications
+   - Ensures alignment with steering documents
+   - Checks feasibility across all SDD phases
+   - Usage: "Use spec-validator to validate the requirements for {feature}"
+
+2. **design-reviewer** - Technical design review
+   - Conducts architectural soundness reviews
+   - Ensures requirements traceability
+   - Identifies implementation risks
+   - Provides GO/NO-GO decisions with rationale
+   - Usage: "Use design-reviewer to review the design for {feature}"
+
+3. **implementation-auditor** - Implementation verification
+   - Validates implementation against requirements and design
+   - Audits TDD compliance and test coverage
+   - Checks code quality and security standards
+   - Verifies task completion accuracy
+   - Usage: "Use implementation-auditor to audit the implementation for {feature}"
+
+### When to Use Subagents
+
+- **After `/kiro:spec-requirements`**: Use spec-validator for requirements review
+- **After `/kiro:spec-design`**: Use design-reviewer (alternative to `/kiro:validate-design`)
+- **After `/kiro:spec-impl`**: Use implementation-auditor (alternative to `/kiro:validate-impl`)
+
+Subagents provide isolated, focused validation with specialized expertise, keeping the main conversation uncluttered while ensuring comprehensive quality assurance.
