@@ -72,7 +72,8 @@ migrate-create: ## 新しいマイグレーションファイルを作成（使�
 
 openapi-gen: ## OpenAPI仕様からコードを生成
 	@echo "OpenAPI仕様からコードを生成中..."
-	oapi-codegen -package api -generate types,server,spec api/openapi.yaml > internal/handler/api_generated.go
+	@mkdir -p internal/api
+	oapi-codegen -package api -generate types,server,spec api/openapi.yaml > internal/api/api_generated.go
 
 deps: ## 依存関係をダウンロード
 	go mod download
