@@ -50,30 +50,30 @@ This project uses Claude Code's subagent functionality for specialized validatio
 
 ### Available Subagents (`.claude/agents/`)
 
-1. **spec-validator** - Requirements & specification validation
-   - Validates completeness and clarity of specifications
-   - Ensures alignment with steering documents
-   - Checks feasibility across all SDD phases
-   - Usage: "Use spec-validator to validate the requirements for {feature}"
+1. **spec-validator** - 要件・仕様検証
+   - 仕様の完全性・明確性・実現可能性をチェック
+   - ステアリング文書との整合性検証
+   - SDD全フェーズ対応
+   - 使用例: "spec-validatorで{機能}の要件を検証して"
 
-2. **design-reviewer** - Technical design review
-   - Conducts architectural soundness reviews
-   - Ensures requirements traceability
-   - Identifies implementation risks
-   - Provides GO/NO-GO decisions with rationale
-   - Usage: "Use design-reviewer to review the design for {feature}"
+2. **design-reviewer** - 技術設計レビュー
+   - アーキテクチャの健全性評価
+   - 要件トレーサビリティの確認
+   - 実装リスクの特定
+   - GO/NO-GO判定と根拠提示
+   - 使用例: "design-reviewerで{機能}の設計をレビューして"
 
-3. **implementation-auditor** - Implementation verification
-   - Validates implementation against requirements and design
-   - Audits TDD compliance and test coverage
-   - Checks code quality and security standards
-   - Verifies task completion accuracy
-   - Usage: "Use implementation-auditor to audit the implementation for {feature}"
+3. **implementation-auditor** - 実装検証
+   - 要件・設計との適合性検証
+   - TDD準拠度・テストカバレッジ監査
+   - コード品質・セキュリティ基準チェック
+   - タスク完了精度の検証
+   - 使用例: "implementation-auditorで{機能}の実装を監査して"
 
-### When to Use Subagents
+### Subagentの使用タイミング
 
-- **After `/kiro:spec-requirements`**: Use spec-validator for requirements review
-- **After `/kiro:spec-design`**: Use design-reviewer (alternative to `/kiro:validate-design`)
-- **After `/kiro:spec-impl`**: Use implementation-auditor (alternative to `/kiro:validate-impl`)
+- **`/kiro:spec-requirements`後**: spec-validatorで要件レビュー
+- **`/kiro:spec-design`後**: design-reviewer（`/kiro:validate-design`の代替）
+- **`/kiro:spec-impl`後**: implementation-auditor（`/kiro:validate-impl`の代替）
 
-Subagents provide isolated, focused validation with specialized expertise, keeping the main conversation uncluttered while ensuring comprehensive quality assurance.
+Subagentは独立したコンテキストで専門的な検証を行い、メイン会話を煩雑にせず包括的な品質保証を実現します。
