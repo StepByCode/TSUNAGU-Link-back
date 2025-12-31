@@ -27,21 +27,21 @@ run: build ## アプリケーションをビルドして実行
 
 dev: ## 開発モードで実行（ホットリロード有効）
 	@which air > /dev/null || (echo "air をインストール中..." && go install github.com/air-verse/air@latest)
-	air
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/air
 
 test: ## テストを実行（gotestsum使用）
 	@which gotestsum > /dev/null || (echo "gotestsum をインストール中..." && go install gotest.tools/gotestsum@latest)
-	gotestsum --format testname -- -race -coverprofile=coverage.out ./...
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/gotestsum --format testname -- -race -coverprofile=coverage.out ./...
 	@echo "カバレッジレポートを生成中..."
 	@go tool cover -html=coverage.out -o coverage.html
 
 test-verbose: ## テストを詳細出力で実行
 	@which gotestsum > /dev/null || (echo "gotestsum をインストール中..." && go install gotest.tools/gotestsum@latest)
-	gotestsum --format standard-verbose -- -race -coverprofile=coverage.out ./...
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/gotestsum --format standard-verbose -- -race -coverprofile=coverage.out ./...
 
 test-watch: ## テストをウォッチモードで実行
 	@which gotestsum > /dev/null || (echo "gotestsum をインストール中..." && go install gotest.tools/gotestsum@latest)
-	gotestsum --watch -- -race ./...
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/gotestsum --watch -- -race ./...
 
 clean: ## ビルド成果物を削除
 	@echo "クリーンアップ中..."
@@ -61,19 +61,19 @@ docker-logs: ## Dockerログを表示
 	docker-compose logs -f
 
 migrate-up: ## データベースマイグレーションを実行（up）
-	migrate -path db/migrations -database "postgresql://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable" up
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate -path db/migrations -database "postgresql://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable" up
 
 migrate-down: ## データベースマイグレーションを実行（down）
-	migrate -path db/migrations -database "postgresql://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable" down
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate -path db/migrations -database "postgresql://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable" down
 
 migrate-create: ## 新しいマイグレーションファイルを作成（使い方: make migrate-create name=create_users_table）
 	@if [ -z "$(name)" ]; then echo "使い方: make migrate-create name=マイグレーション名"; exit 1; fi
-	migrate create -ext sql -dir db/migrations -seq $(name)
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate create -ext sql -dir db/migrations -seq $(name)
 
 openapi-gen: ## OpenAPI仕様からコードを生成
 	@echo "OpenAPI仕様からコードを生成中..."
 	@mkdir -p internal/api
-	oapi-codegen -package api -generate types,server,spec api/openapi.yaml > internal/api/api_generated.go
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/oapi-codegen -package api -generate types,server,spec api/openapi.yaml > internal/api/api_generated.go
 
 deps: ## 依存関係をダウンロード
 	go mod download
