@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,8 @@ RUN go mod download
 
 COPY . .
 
-RUN make build
+# 本番用ビルド（setupではなくbuildのみ）
+RUN mkdir -p bin && go build -o bin/server ./cmd/server
 
 FROM alpine:latest
 

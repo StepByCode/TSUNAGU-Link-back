@@ -1,6 +1,6 @@
 module github.com/StepByCode/TSUNAGU-Link-back
 
-go 1.25
+go 1.24.0
 
 require (
 	github.com/getkin/kin-openapi v0.133.0
