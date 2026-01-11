@@ -14,20 +14,35 @@ RUN mkdir -p bin && go build -o bin/server ./cmd/server
 
 FROM alpine:latest
 
+# ビルド時引数を受け取る（Coolifyから渡される）
+ARG DATABASE_HOST
+ARG DB_HOST
+ARG DB_PORT=5432
+ARG DB_USER
+ARG DB_PASSWORD
+ARG DB_NAME
+ARG DB_SSLMODE=disable
+ARG SERVER_PORT=8080
+ARG JWT_SECRET
+ARG JWT_EXPIRY_HOURS=24
+
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
 COPY --from=builder /app/bin/server .
 
-# デフォルト環境変数（Coolifyで上書き可能）
-ENV DB_HOST=yckco84g0sowg8scggoos44w \
-    DB_PORT=5432 \
-    DB_USER=tsunagu \
-    DB_PASSWORD=N14xBDZdgAgRUYjN5ek63n1OFs8lTWE7I5poLRzF0SCSMhlz32PQx7L3ARZfGcQE \
-    DB_NAME=tsunagu_db \
-    DB_SSLMODE=disable \
-    SERVER_PORT=8080
+# ARGを実行時環境変数（ENV）に変換
+ENV DATABASE_HOST=${DATABASE_HOST} \
+    DB_HOST=${DB_HOST} \
+    DB_PORT=${DB_PORT} \
+    DB_USER=${DB_USER} \
+    DB_PASSWORD=${DB_PASSWORD} \
+    DB_NAME=${DB_NAME} \
+    DB_SSLMODE=${DB_SSLMODE} \
+    SERVER_PORT=${SERVER_PORT} \
+    JWT_SECRET=${JWT_SECRET} \
+    JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS}
 
 EXPOSE 8080
 
