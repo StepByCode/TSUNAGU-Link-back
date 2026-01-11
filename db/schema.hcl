@@ -2,20 +2,11 @@
 // このファイルは、Atlasを使用してマイグレーションファイルを自動生成するための
 // スキーマ定義です。既存のマイグレーション（000001_create_users_table.up.sql）
 // の内容を反映しています。
-
-schema "public" {
-  comment = "Public schema for TSUNAGU-Link"
-}
-
-// UUID拡張を有効化
-extension "uuid-ossp" {
-  schema = schema.public
-}
+//
+// 注: PostgreSQLのデフォルトスキーマ（public）を暗黙的に使用します。
 
 // usersテーブル
 table "users" {
-  schema = schema.public
-
   column "id" {
     null    = false
     type    = uuid
