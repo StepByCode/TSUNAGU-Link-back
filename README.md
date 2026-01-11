@@ -140,12 +140,6 @@ make migrate-create name=add_new_table
 make migrate-up
 ```
 
-ローカル環境で直接スキーマファイルからDBに適用したい場合は、`db/schema.sql` を参照して psql で実行してください。例:
-
-```bash
-psql -h <HOST> -U <USER> -d <DBNAME> -f db/schema.sql
-```
-
 マイグレーションをロールバック:
 
 ```bash
