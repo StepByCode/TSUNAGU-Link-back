@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
@@ -20,12 +20,9 @@ WORKDIR /root/
 
 COPY --from=builder /app/bin/server .
 
-# デフォルト環境変数（Coolifyで上書き可能）
-ENV DB_HOST=yckco84g0sowg8scggoos44w \
-    DB_PORT=5432 \
-    DB_USER=tsunagu \
-    DB_PASSWORD=N14xBDZdgAgRUYjN5ek63n1OFs8lTWE7I5poLRzF0SCSMhlz32PQx7L3ARZfGcQE \
-    DB_NAME=tsunagu_db \
+# デフォルト環境変数（機密情報は実行時に渡す）
+# DB_HOST, DB_USER, DB_PASSWORD, DB_NAMEは環境変数として設定してください
+ENV DB_PORT=5432 \
     DB_SSLMODE=disable \
     SERVER_PORT=8080
 
