@@ -58,7 +58,8 @@ table "users" {
     columns = [column.id]
   }
 
-  unique {
+  index "users_email_key" {
+    unique  = true
     columns = [column.email]
   }
 
