@@ -26,11 +26,18 @@ ARG SERVER_PORT=8080
 ARG JWT_SECRET
 ARG JWT_EXPIRY_HOURS=24
 
-RUN apk --no-cache add ca-certificates
+# 必要なパッケージとgolang-migrateのインストール
+RUN apk --no-cache add ca-certificates postgresql-client curl && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
+    mv migrate /usr/local/bin/migrate && \
+    chmod +x /usr/local/bin/migrate
 
 WORKDIR /root/
 
 COPY --from=builder /app/bin/server .
+COPY --from=builder /app/db/migrations ./migrations
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 # ARGを実行時環境変数（ENV）に変換
 ENV DATABASE_HOST=${DATABASE_HOST} \
@@ -46,4 +53,4 @@ ENV DATABASE_HOST=${DATABASE_HOST} \
 
 EXPOSE 8080
 
-CMD ["./server"]
+ENTRYPOINT ["./entrypoint.sh"]
