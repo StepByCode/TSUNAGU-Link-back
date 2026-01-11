@@ -18,8 +18,8 @@ import (
 
 func main() {
 	// 環境変数のデバッグ出力
-	log.Printf("Environment variables - DB_HOST: %q, DB_USER: %q, DB_NAME: %q",
-		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_NAME"))
+	log.Printf("Environment variables - DATABASE_HOST: %q, DB_HOST: %q, DB_USER: %q, DB_NAME: %q",
+		os.Getenv("DATABASE_HOST"), os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_NAME"))
 
 	cfg, err := config.Load()
 	if err != nil {

@@ -15,6 +15,7 @@ RUN mkdir -p bin && go build -o bin/server ./cmd/server
 FROM alpine:latest
 
 # ビルド時引数を受け取る（Coolifyから渡される）
+ARG DATABASE_HOST
 ARG DB_HOST
 ARG DB_PORT=5432
 ARG DB_USER
@@ -31,16 +32,17 @@ WORKDIR /root/
 
 COPY --from=builder /app/bin/server .
 
-# ARGを実行時環境変数（ENV）に変換（空の場合はデフォルト値を使用）
-ENV DB_HOST=${DB_HOST:-y48wwkg0w8wok4sk4swcwkk4} \
-    DB_PORT=${DB_PORT:-5432} \
-    DB_USER=${DB_USER:-tsunagu} \
+# ARGを実行時環境変数（ENV）に変換
+ENV DATABASE_HOST=${DATABASE_HOST} \
+    DB_HOST=${DB_HOST} \
+    DB_PORT=${DB_PORT} \
+    DB_USER=${DB_USER} \
     DB_PASSWORD=${DB_PASSWORD} \
-    DB_NAME=${DB_NAME:-tsunagu_db_pre} \
-    DB_SSLMODE=${DB_SSLMODE:-disable} \
-    SERVER_PORT=${SERVER_PORT:-8080} \
+    DB_NAME=${DB_NAME} \
+    DB_SSLMODE=${DB_SSLMODE} \
+    SERVER_PORT=${SERVER_PORT} \
     JWT_SECRET=${JWT_SECRET} \
-    JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
+    JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS}
 
 EXPOSE 8080
 
