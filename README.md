@@ -128,23 +128,64 @@ make openapi-gen
 
 マイグレーションファイルは `db/migrations/` ディレクトリに配置されています。
 
-新しいマイグレーションを作成:
+### 手動でマイグレーションを作成
+
+空のマイグレーションファイルを作成して、手動でSQLを記述:
 
 ```bash
 make migrate-create name=add_new_table
 ```
 
-マイグレーションを実行:
+### Atlasで自動生成（推奨）
+
+スキーマ定義ファイル（`db/schema.hcl`）を編集してから、マイグレーションを自動生成:
+
+```bash
+# 1. db/schema.hcl を編集して新しいテーブルやカラムを追加
+# 2. マイグレーションファイルを自動生成
+make migrate-generate name=add_new_table
+
+# 3. 生成されたマイグレーションファイルを確認
+# 4. 問題なければ実行
+make migrate-up
+```
+
+### マイグレーションを実行
 
 ```bash
 make migrate-up
 ```
 
-マイグレーションをロールバック:
+### マイグレーションをロールバック
 
 ```bash
 make migrate-down
 ```
+
+### その他のマイグレーションコマンド
+
+```bash
+# マイグレーション状態を確認
+make migrate-status
+
+# マイグレーションファイルを検証
+make migrate-lint
+
+# 現在のデータベーススキーマを表示
+make schema-inspect
+```
+
+### マイグレーションツール
+
+このプロジェクトは以下のツールを使用しています:
+
+- **golang-migrate**: マイグレーションの実行
+- **Atlas**: マイグレーションファイルの自動生成と検証
+
+詳細は以下を参照してください:
+- [Atlasマイグレーション自動生成ガイド](docs/ATLAS_GUIDE.md)
+- 設定ファイル: `atlas.hcl`
+- スキーマ定義: `db/schema.hcl`
 
 ## 開発ガイドライン
 

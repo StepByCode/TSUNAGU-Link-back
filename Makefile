@@ -15,6 +15,7 @@ install-tools: ## 開発ツールをインストール
 	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 	go install gotest.tools/gotestsum@latest
+	@which atlas > /dev/null || (echo "Atlasをインストール中..." && curl -sSf https://atlasgo.sh | sh)
 
 build: ## アプリケーションをビルド
 	@echo "アプリケーションをビルド中..."
@@ -69,6 +70,27 @@ migrate-down: ## データベースマイグレーションを実行（down）
 migrate-create: ## 新しいマイグレーションファイルを作成（使い方: make migrate-create name=create_users_table）
 	@if [ -z "$(name)" ]; then echo "使い方: make migrate-create name=マイグレーション名"; exit 1; fi
 	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate create -ext sql -dir db/migrations -seq $(name)
+
+migrate-generate: ## スキーマ定義からマイグレーションを自動生成（使い方: make migrate-generate name=add_new_table）
+	@if [ -z "$(name)" ]; then echo "使い方: make migrate-generate name=マイグレーション名"; exit 1; fi
+	@which atlas > /dev/null || (echo "Atlasがインストールされていません。make install-tools を実行してください。" && exit 1)
+	@echo "スキーマ定義からマイグレーションを生成中..."
+	atlas migrate diff $(name) --env schema
+
+migrate-lint: ## マイグレーションファイルを検証
+	@which atlas > /dev/null || (echo "Atlasがインストールされていません。make install-tools を実行してください。" && exit 1)
+	@echo "マイグレーションファイルを検証中..."
+	atlas migrate lint --env dev
+
+migrate-status: ## マイグレーションの状態を確認
+	@which atlas > /dev/null || (echo "Atlasがインストールされていません。make install-tools を実行してください。" && exit 1)
+	@echo "マイグレーション状態を確認中..."
+	atlas migrate status --env dev
+
+schema-inspect: ## 現在のデータベーススキーマを表示
+	@which atlas > /dev/null || (echo "Atlasがインストールされていません。make install-tools を実行してください。" && exit 1)
+	@echo "データベーススキーマを取得中..."
+	atlas schema inspect --env dev
 
 openapi-gen: ## OpenAPI仕様からコードを生成
 	@echo "OpenAPI仕様からコードを生成中..."
