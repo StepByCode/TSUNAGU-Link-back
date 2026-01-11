@@ -31,16 +31,16 @@ WORKDIR /root/
 
 COPY --from=builder /app/bin/server .
 
-# ARGを実行時環境変数（ENV）に変換
-ENV DB_HOST=${DB_HOST} \
-    DB_PORT=${DB_PORT} \
-    DB_USER=${DB_USER} \
+# ARGを実行時環境変数（ENV）に変換（空の場合はデフォルト値を使用）
+ENV DB_HOST=${DB_HOST:-y48wwkg0w8wok4sk4swcwkk4} \
+    DB_PORT=${DB_PORT:-5432} \
+    DB_USER=${DB_USER:-tsunagu} \
     DB_PASSWORD=${DB_PASSWORD} \
-    DB_NAME=${DB_NAME} \
-    DB_SSLMODE=${DB_SSLMODE} \
-    SERVER_PORT=${SERVER_PORT} \
+    DB_NAME=${DB_NAME:-tsunagu_db_pre} \
+    DB_SSLMODE=${DB_SSLMODE:-disable} \
+    SERVER_PORT=${SERVER_PORT:-8080} \
     JWT_SECRET=${JWT_SECRET} \
-    JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS}
+    JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
 
 EXPOSE 8080
 
