@@ -37,7 +37,7 @@ env "schema" {
   url = "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable"
 
   // 開発用データベース（スキーマ計算用）
-  dev = "docker://postgres/16/dev?search_path=public"
+  dev = "docker://postgres/16/dev"
 
   // マイグレーションディレクトリ（golang-migrate形式）
   migration {

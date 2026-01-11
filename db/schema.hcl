@@ -2,11 +2,13 @@
 // このファイルは、Atlasを使用してマイグレーションファイルを自動生成するための
 // スキーマ定義です。既存のマイグレーション（000001_create_users_table.up.sql）
 // の内容を反映しています。
-//
-// 注: PostgreSQLのデフォルトスキーマ（public）を暗黙的に使用します。
+
+schema "public" {
+}
 
 // usersテーブル
 table "users" {
+  schema = schema.public
   column "id" {
     null    = false
     type    = uuid
