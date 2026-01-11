@@ -71,11 +71,31 @@ migrate-create: ## 新しいマイグレーションファイルを作成（使�
 	@if [ -z "$(name)" ]; then echo "使い方: make migrate-create name=マイグレーション名"; exit 1; fi
 	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate create -ext sql -dir db/migrations -seq $(name)
 
-migrate-generate: ## スキーマ定義からマイグレーションを自動生成（使い方: make migrate-generate name=add_new_table）
-	@if [ -z "$(name)" ]; then echo "使い方: make migrate-generate name=マイグレーション名"; exit 1; fi
+migrate-generate: ## スキーマ定義からマイグレーションを自動生成（使い方: make migrate-generate [name=add_new_table]）
 	@which atlas > /dev/null || (echo "Atlasがインストールされていません。make install-tools を実行してください。" && exit 1)
-	@echo "スキーマ定義からマイグレーションを生成中..."
-	atlas migrate diff $(name) --env schema
+	@if [ -z "$(name)" ]; then \
+		echo "マイグレーション名を入力してください（例: add_posts_table）:"; \
+		read migration_name; \
+		if [ -z "$$migration_name" ]; then \
+			migration_name="migration_$$(date +%Y%m%d_%H%M%S)"; \
+			echo "マイグレーション名が未指定のため、デフォルト名を使用: $$migration_name"; \
+		fi; \
+		echo "スキーマ定義からマイグレーションを生成中..."; \
+		atlas migrate diff $$migration_name --env schema; \
+	else \
+		echo "スキーマ定義からマイグレーションを生成中..."; \
+		atlas migrate diff $(name) --env schema; \
+	fi
+
+migrate-generate-auto: ## スキーマ差分から自動的にマイグレーションを生成（タイムスタンプ名）
+	@which atlas > /dev/null || (echo "Atlasがインストールされていません。make install-tools を実行してください。" && exit 1)
+	@migration_name="migration_$$(date +%Y%m%d_%H%M%S)"; \
+	echo "自動生成モード: $$migration_name"; \
+	echo "スキーマ定義からマイグレーションを生成中..."; \
+	atlas migrate diff $$migration_name --env schema && \
+	echo "" && \
+	echo "⚠️  マイグレーション名を変更することを推奨します:" && \
+	echo "   生成されたファイルをリネームしてください（例: 000XXX_$$migration_name.up.sql → 000XXX_add_posts_table.up.sql）"
 
 migrate-lint: ## マイグレーションファイルを検証
 	@which atlas > /dev/null || (echo "Atlasがインストールされていません。make install-tools を実行してください。" && exit 1)

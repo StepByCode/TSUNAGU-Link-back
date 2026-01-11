@@ -142,8 +142,15 @@ make migrate-create name=add_new_table
 
 ```bash
 # 1. db/schema.hcl を編集して新しいテーブルやカラムを追加
-# 2. マイグレーションファイルを自動生成
+
+# 2a. マイグレーション名を指定して生成
 make migrate-generate name=add_new_table
+
+# 2b. 対話的に名前を入力（nameを省略）
+make migrate-generate
+
+# 2c. 完全自動（タイムスタンプ名で生成、後でリネーム推奨）
+make migrate-generate-auto
 
 # 3. 生成されたマイグレーションファイルを確認
 # 4. 問題なければ実行

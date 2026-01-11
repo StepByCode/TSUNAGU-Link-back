@@ -86,8 +86,25 @@ make docker-up
 
 2. **マイグレーションファイルを生成**
 
+   3つの方法があります:
+
+   **方法A: 明示的に名前を指定（推奨）**
    ```bash
    make migrate-generate name=create_posts_table
+   ```
+
+   **方法B: 対話的に名前を入力**
+   ```bash
+   make migrate-generate
+   # プロンプトが表示されるので名前を入力
+   # 例: create_posts_table
+   ```
+
+   **方法C: 完全自動（タイムスタンプ名）**
+   ```bash
+   make migrate-generate-auto
+   # migration_20260111_134530 のような名前で自動生成
+   # 後で意味のある名前にリネームすることを推奨
    ```
 
    これにより、以下のファイルが自動生成されます:
