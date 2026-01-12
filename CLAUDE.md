@@ -77,3 +77,70 @@ This project uses Claude Code's subagent functionality for specialized validatio
 - **`/kiro:spec-impl`後**: implementation-auditor（`/kiro:validate-impl`の代替）
 
 Subagentは独立したコンテキストで専門的な検証を行い、メイン会話を煩雑にせず包括的な品質保証を実現します。
+
+## Database Schema Management
+
+このプロジェクトはAtlasを使用したスキーマ駆動型マイグレーション管理を採用しています。
+
+### スキーマ追加ワークフロー
+
+1. **スキーマ定義を編集** (`db/schema.hcl`)
+   - 新しいテーブル、カラム、インデックスなどをHCL形式で定義
+   - 外部キー制約やインデックスも定義可能
+
+2. **マイグレーションファイルを自動生成**
+   ```bash
+   # 推奨：名前を指定して生成
+   make migrate-generate name=add_posts_table
+
+   # 対話的に名前を入力
+   make migrate-generate
+
+   # 完全自動（タイムスタンプ名、後でリネーム推奨）
+   make migrate-generate-auto
+   ```
+
+3. **生成されたSQLファイルをレビュー**
+   - `db/migrations/` 配下の `.up.sql` と `.down.sql` を確認
+   - 意図しない変更が含まれていないかチェック
+   - ロールバック用の `.down.sql` も必ず確認
+
+4. **ローカル環境でテスト**
+   ```bash
+   # マイグレーションを適用
+   make migrate-up
+
+   # スキーマを確認
+   make schema-inspect
+
+   # 問題があればロールバック
+   make migrate-down
+   ```
+
+5. **コミット＆デプロイ**
+   - スキーマ定義とマイグレーションファイルをコミット
+   - Coolifyへのデプロイ時に自動的にマイグレーションが実行される
+
+### 便利なコマンド
+
+```bash
+# マイグレーション状態を確認
+make migrate-status
+
+# 現在のDBスキーマを表示
+make schema-inspect
+
+# マイグレーションファイルを検証
+make migrate-lint
+```
+
+### 重要な注意点
+
+- **`db/schema.hcl`が真実の源泉** - 常にここを編集してからマイグレーション生成
+- **生成されたSQLは必ずレビュー** - Atlasは賢いが人間による確認は必須
+- **downマイグレーションも確認** - ロールバック時の挙動を理解しておく
+- **本番適用前にローカルでテスト** - 予期しない変更を防ぐ
+
+### デプロイメント
+
+Dockerfileの`entrypoint.sh`がコンテナ起動時に自動的にマイグレーションを実行します。Coolifyへのデプロイ = 自動マイグレーション適用となるため、マイグレーションファイルは慎重に管理してください。
