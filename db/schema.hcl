@@ -12,7 +12,7 @@ table "users" {
   column "id" {
     null    = false
     type    = uuid
-    default = sql("uuid_generate_v4()")
+    default = sql("gen_random_uuid()")
   }
 
   column "email" {

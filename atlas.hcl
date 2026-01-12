@@ -2,19 +2,16 @@
 
 // 開発環境の設定
 env "dev" {
-  // データベース接続URL（docker-compose経由）
+  // 現在のデータベース状態（既存のマイグレーション適用済み）
   url = "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable"
-
-  // 開発用データベース（スキーマ計算用）
-  dev = "docker://postgres/16/dev?search_path=public"
 
   // マイグレーションディレクトリ（golang-migrate形式）
   migration {
     dir = "file://db/migrations?format=golang-migrate"
   }
 
-  // スキーマソース（既存のマイグレーションから読み込み）
-  src = "file://db/migrations?format=golang-migrate"
+  // スキーマソース（スキーマ定義ファイルから読み込み）
+  src = "file://db/schema.hcl"
 }
 
 // 本番環境の設定（環境変数から読み込み）
@@ -33,8 +30,8 @@ env "prod" {
 
 // スキーマファイルを使用する場合の設定
 env "schema" {
-  // データベース接続URL
-  url = "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable"
+  // 既存のマイグレーションを基準にする
+  url = "file://db/migrations?format=golang-migrate"
 
   // 開発用データベース（スキーマ計算用）
   dev = "docker://postgres/16/dev"

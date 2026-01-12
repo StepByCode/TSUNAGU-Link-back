@@ -81,10 +81,16 @@ migrate-generate: ## スキーマ定義からマイグレーションを自動�
 			echo "マイグレーション名が未指定のため、デフォルト名を使用: $$migration_name"; \
 		fi; \
 		echo "スキーマ定義からマイグレーションを生成中..."; \
-		atlas migrate diff $$migration_name --env schema; \
+		atlas migrate diff $$migration_name \
+			--dir "file://db/migrations?format=golang-migrate" \
+			--to "file://db/schema.hcl" \
+			--dev-url "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db_dev?sslmode=disable"; \
 	else \
 		echo "スキーマ定義からマイグレーションを生成中..."; \
-		atlas migrate diff $(name) --env schema; \
+		atlas migrate diff $(name) \
+			--dir "file://db/migrations?format=golang-migrate" \
+			--to "file://db/schema.hcl" \
+			--dev-url "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db_dev?sslmode=disable"; \
 	fi
 
 migrate-generate-auto: ## スキーマ差分から自動的にマイグレーションを生成（タイムスタンプ名）
