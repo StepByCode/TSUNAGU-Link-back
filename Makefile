@@ -84,13 +84,13 @@ migrate-generate: ## スキーマ定義からマイグレーションを自動�
 		atlas migrate diff $$migration_name \
 			--dir "file://db/migrations?format=golang-migrate" \
 			--to "file://db/schema.hcl" \
-			--dev-url "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db_dev?sslmode=disable"; \
+			--dev-url "docker://postgres/16/dev"; \
 	else \
 		echo "スキーマ定義からマイグレーションを生成中..."; \
 		atlas migrate diff $(name) \
 			--dir "file://db/migrations?format=golang-migrate" \
 			--to "file://db/schema.hcl" \
-			--dev-url "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db_dev?sslmode=disable"; \
+			--dev-url "docker://postgres/16/dev"; \
 	fi
 
 migrate-generate-auto: ## スキーマ差分から自動的にマイグレーションを生成（タイムスタンプ名）
