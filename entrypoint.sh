@@ -11,6 +11,21 @@ echo "  DB_PORT: ${DB_PORT}"
 echo "  DB_NAME: ${DB_NAME}"
 echo "  DB_USER: ${DB_USER}"
 
+# 必須環境変数のバリデーション
+MISSING_VARS=""
+[ -z "${DB_HOST}${DATABASE_HOST}" ] && MISSING_VARS="${MISSING_VARS} DB_HOST/DATABASE_HOST"
+[ -z "${DB_PORT}" ] && MISSING_VARS="${MISSING_VARS} DB_PORT"
+[ -z "${DB_USER}" ] && MISSING_VARS="${MISSING_VARS} DB_USER"
+[ -z "${DB_PASSWORD}" ] && MISSING_VARS="${MISSING_VARS} DB_PASSWORD"
+[ -z "${DB_NAME}" ] && MISSING_VARS="${MISSING_VARS} DB_NAME"
+[ -z "${DB_SSLMODE}" ] && MISSING_VARS="${MISSING_VARS} DB_SSLMODE"
+
+if [ -n "${MISSING_VARS}" ]; then
+    echo "ERROR: Missing required environment variables:${MISSING_VARS}"
+    echo "Please check Coolify environment variable configuration."
+    exit 1
+fi
+
 # DATABASE_HOSTとDB_HOSTのフォールバック処理
 ACTUAL_DB_HOST="${DATABASE_HOST:-${DB_HOST}}"
 echo "  Using DB host: ${ACTUAL_DB_HOST}"
