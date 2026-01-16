@@ -53,10 +53,21 @@ Repository層 (internal/repository/) : データアクセス
 **Purpose**: OpenAPI仕様書、API契約の定義
 **Example**: `openapi.yaml` から `oapi-codegen` で型を生成
 
+### Database Schema Definition
+**Location**: `db/schema.hcl`
+**Purpose**: データベーススキーマの宣言的定義（Single Source of Truth）
+**Format**: HCL形式でテーブル、カラム、インデックス、外部キー制約を定義
+**Example**: Atlasが `schema.hcl` から差分を検出し、マイグレーションファイルを自動生成
+
 ### Database Migrations
 **Location**: `db/migrations/`
-**Purpose**: データベーススキーマのバージョン管理
+**Purpose**: データベーススキーマのバージョン管理と適用
 **Pattern**: `{seq}_{name}.up.sql` / `{seq}_{name}.down.sql`
+**Workflow**:
+1. `db/schema.hcl` を編集
+2. `make migrate-generate name=add_posts_table` でマイグレーション自動生成
+3. 生成された `.up.sql` / `.down.sql` をレビュー
+4. `make migrate-up` で適用、`make migrate-down` でロールバック
 
 ## Naming Conventions
 
