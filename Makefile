@@ -62,10 +62,9 @@ docker-logs: ## Dockerログを表示
 	docker-compose logs -f
 
 migrate-up: ## データベースマイグレーションを実行（up）
-	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate -path db/migrations -database "postgresql://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable" up
-
+	atlas migrate apply --env dev
 migrate-down: ## データベースマイグレーションを実行（down）
-	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate -path db/migrations -database "postgresql://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable" down
+	@GOPATH=$$(go env GOPATH); $$GOPATH/bin/migrate -path db/migrations -database "postgres://tsunagu:tsunagu_password@localhost:5432/tsunagu_db?sslmode=disable" down
 
 migrate-create: ## 新しいマイグレーションファイルを作成（使い方: make migrate-create name=create_users_table）
 	@if [ -z "$(name)" ]; then echo "使い方: make migrate-create name=マイグレーション名"; exit 1; fi
