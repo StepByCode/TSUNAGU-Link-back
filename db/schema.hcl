@@ -5,20 +5,13 @@
 
 schema "public" {
 }
-
-variable "uuid_ossp" {
-  type = string
-  default = "uuid-ossp"
-}
 # スキーマの定義
 schema "master_data" {}
 schema "users" {}
 schema "profiles" {}
 schema "attendance_logs" {}
-
 # 1. UUID機能（拡張）
 # ※ PostgreSQLの拡張機能はAtlasの設定で管理するかSQLで事前実行が必要です
-
 # 2. master_data テーブル群
 table "grades" {
   schema = schema.master_data
@@ -32,7 +25,6 @@ table "grades" {
     columns = [column.id]
   }
 }
-
 table "locations" {
   schema = schema.master_data
   column "id" {
@@ -45,13 +37,12 @@ table "locations" {
     columns = [column.id]
   }
 }
-
 # 3. ユーザーテーブル
 table "users" {
   schema = schema.users
   column "id" {
     type    = uuid
-    default = sql("uuid_generate_v4()")
+    default = sql("gen_random_uuid()")  # ← ここ修正したよ♡
   }
   column "email" {
     type = text
@@ -64,7 +55,6 @@ table "users" {
     columns = [column.email]
   }
 }
-
 # 4. プロフィールテーブル（外部キー制約の例）
 table "profiles" {
   schema = schema.profiles
@@ -77,18 +67,15 @@ table "profiles" {
   column "grade_id" {
     type = int
   }
-
   primary_key {
     columns = [column.user_id]
   }
-
   # これが外部キー制約 (Foreign Key)
   foreign_key "profiles_user_id_fkey" {
     columns     = [column.user_id]         # 自分のテーブルのカラム
     ref_columns = [table.users.column.id] # 相手のテーブルのカラム
     on_delete   = CASCADE                 # ユーザー消えたらプロフィールも消す
   }
-
   foreign_key "profiles_grade_id_fkey" {
     columns     = [column.grade_id]
     ref_columns = [table.grades.column.id]
