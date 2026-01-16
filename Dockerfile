@@ -27,7 +27,7 @@ ARG JWT_SECRET
 ARG JWT_EXPIRY_HOURS=24
 
 # 必要なパッケージとgolang-migrateのインストール
-RUN apk --no-cache add ca-certificates postgres-client curl && \
+RUN apk --no-cache add ca-certificates postgresql-client curl && \
     curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
     mv migrate /usr/local/bin/migrate && \
     chmod +x /usr/local/bin/migrate
