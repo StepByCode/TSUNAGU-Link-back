@@ -82,6 +82,9 @@ Subagentは独立したコンテキストで専門的な検証を行い、メイ
 
 このプロジェクトはAtlasを使用したスキーマ駆動型マイグレーション管理を採用しています。
 
+📖 **詳細な手順書**: [docs/SCHEMA_MIGRATION_WORKFLOW.md](docs/SCHEMA_MIGRATION_WORKFLOW.md)
+📚 **Atlasガイド**: [docs/ATLAS_GUIDE.md](docs/ATLAS_GUIDE.md)
+
 ### スキーマ追加ワークフロー
 
 1. **スキーマ定義を編集** (`db/schema.hcl`)
