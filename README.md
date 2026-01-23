@@ -209,9 +209,53 @@ make schema-inspect
 2. **Service層**: ビジネスロジック
 3. **Repository層**: データアクセス
 
+## CI/CD
+
+このプロジェクトではGitHub Actionsを使用したCI/CDパイプラインを構築しています。
+
+### 自動実行されるワークフロー
+
+#### CI（継続的インテグレーション）
+- **トリガー**: PRの作成・更新、main/developブランチへのpush
+- **実行内容**:
+  - テスト実行（PostgreSQL付き）
+  - Lintチェック（golangci-lint）
+  - ビルド検証
+  - カバレッジレポート（Codecov）
+
+#### Claude PR Review（自動コードレビュー）
+- **トリガー**: PRの作成・更新、または`@claude`メンション
+- **実行内容**:
+  - コード品質チェック
+  - セキュリティ脆弱性の検出
+  - Goベストプラクティスの確認
+  - データベースマイグレーションの検証
+  - 仕様駆動開発（SDD）との整合性確認
+
+### Claude Code Actionのセットアップ
+
+Claude AIによる自動PRレビューを有効にするには：
+
+1. **リポジトリ管理者がセットアップを実行**:
+   ```bash
+   claude
+   /install-github-app
+   ```
+
+2. **必要なシークレットを設定**:
+   - GitHub Settings → Secrets and variables → Actions
+   - `ANTHROPIC_API_KEY`を追加（Anthropic APIキー）
+
+3. **PRで`@claude`をメンションしてレビューを依頼**:
+   ```
+   @claude このPRをレビューしてください
+   ```
+
+詳細は[Claude Code GitHub Actions](https://code.claude.com/docs/ja/github-actions)を参照してください。
+
 ## 今後の予定
 
 - [ ] Zitadel認証基盤の統合
 - [ ] より多くのAPIエンドポイント
 - [ ] 単体テスト・統合テストの充実
-- [ ] CI/CDパイプラインの構築
+- [x] CI/CDパイプラインの構築
