@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -194,8 +193,7 @@ func TestUserHandler_CreateUser_ServiceError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	mockService.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.CreateUserRequest")).Return(nil, fmt.Errorf("service error"))
-
+	mockService.On("CreateUser").Return(nil, service.ErrUserAlreadyExists)
 	err := handler.CreateUser(c)
 
 	require.NoError(t, err)

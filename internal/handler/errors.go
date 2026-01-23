@@ -35,7 +35,7 @@ func handleServiceError(c echo.Context, err error) error {
 		return RespondWithError(c, http.StatusUnauthorized, "invalid credentials")
 	default:
 		// Log the actual error for debugging, but return generic message to client
-		c.Logger().Error(err)
+		c.Logger().Errorf("Internal server error: %v, request: %s %s", err, c.Request().Method, c.Request().URL.Path)
 		return RespondWithError(c, http.StatusInternalServerError, "internal server error")
 	}
 }

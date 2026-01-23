@@ -104,6 +104,9 @@ func (h *UserHandler) ListUsers(c echo.Context) error {
 	if limit <= 0 {
 		limit = 10
 	}
+	if limit > 100 {
+		limit = 100 // Maximum limit
+	}
 
 	offset, _ := strconv.Atoi(c.QueryParam("offset"))
 	if offset < 0 {
