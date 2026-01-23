@@ -242,7 +242,18 @@ Claude AIによる自動PRレビューを有効にするには：
    /install-github-app
    ```
 
-2. **必要なシークレットを設定**:
+2. **認証方法を選択してシークレットを設定**:
+
+   **方法A: Claude Pro/Maxサブスクリプションを使用（推奨）**
+   ```bash
+   # OAuthトークンを生成
+   claude setup-token
+   ```
+   - GitHub Settings → Secrets and variables → Actions
+   - `CLAUDE_CODE_OAUTH_TOKEN`を追加（生成されたトークン）
+   - サブスクリプション内で動作するため、追加料金不要
+
+   **方法B: API Key認証（従量課金）**
    - GitHub Settings → Secrets and variables → Actions
    - `ANTHROPIC_API_KEY`を追加（Anthropic APIキー）
 
@@ -251,7 +262,7 @@ Claude AIによる自動PRレビューを有効にするには：
    @claude このPRをレビューしてください
    ```
 
-詳細は[Claude Code GitHub Actions](https://code.claude.com/docs/ja/github-actions)を参照してください。
+詳細は[docs/CLAUDE_CODE_SETUP.md](docs/CLAUDE_CODE_SETUP.md)または[Claude Code GitHub Actions](https://code.claude.com/docs/ja/github-actions)を参照してください。
 
 ## 今後の予定
 

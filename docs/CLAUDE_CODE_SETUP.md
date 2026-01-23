@@ -20,7 +20,9 @@ Claude Code Actionは、AnthropicのClaude AIを使用してプルリクエス�
 ### 前提条件
 
 - リポジトリの管理者権限
-- Anthropic APIキー（[Anthropic Console](https://console.anthropic.com/)で取得）
+- 以下のいずれか：
+  - **Claude Pro/Maxサブスクリプション**（推奨：サブスクリプション内で動作）
+  - **Anthropic APIキー**（従量課金、[Anthropic Console](https://console.anthropic.com/)で取得）
 
 ### 1. Claude Code CLIでセットアップ（推奨）
 
@@ -39,16 +41,49 @@ claude
 - 必要な権限の設定
 - シークレットの設定ガイド
 
-### 2. Anthropic APIキーの設定
+### 2. 認証方法の選択
 
-1. GitHubリポジトリの設定を開く
-2. **Settings** → **Secrets and variables** → **Actions**
-3. **New repository secret**をクリック
-4. 以下のシークレットを追加：
+#### 方法A: OAuth認証（Claude Pro/Maxサブスクリプションを使用）
 
-| Name | Value |
-|------|-------|
-| `ANTHROPIC_API_KEY` | AnthropicコンソールのAPIキー |
+**✨ サブスクリプションのクレジットで動作するため、追加料金不要！**
+
+1. **ローカルでOAuthトークンを生成**:
+   ```bash
+   claude setup-token
+   ```
+   ※Claude Pro/Maxユーザーのみ利用可能
+
+2. **GitHubシークレットに追加**:
+   - GitHub Settings → Secrets and variables → Actions
+   - **New repository secret**をクリック
+   - 以下を設定：
+
+   | Name | Value |
+   |------|-------|
+   | `CLAUDE_CODE_OAUTH_TOKEN` | 生成されたOAuthトークン |
+
+#### 方法B: API Key認証（従量課金）
+
+1. **Anthropic APIキーを取得**:
+   - [Anthropic Console](https://console.anthropic.com/)でAPIキーを生成
+
+2. **GitHubシークレットに追加**:
+   - GitHub Settings → Secrets and variables → Actions
+   - **New repository secret**をクリック
+   - 以下を設定：
+
+   | Name | Value |
+   |------|-------|
+   | `ANTHROPIC_API_KEY` | AnthropicコンソールのAPIキー |
+
+#### 認証方法の比較
+
+| 項目 | OAuth認証 | API Key認証 |
+|------|---------|-----------|
+| **必要なもの** | Claude Pro/Max | Anthropic APIキー |
+| **料金** | サブスクリプション内 | 従量課金 |
+| **セットアップ** | ローカルでトークン生成 | コンソールでキー取得 |
+| **推奨ユーザー** | Pro/Maxユーザー | 一般ユーザー |
 
 ### 3. ワークフローの確認
 

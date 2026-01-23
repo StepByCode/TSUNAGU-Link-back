@@ -31,6 +31,9 @@ jobs:
       - name: Claude Code Review
         uses: anthropics/claude-code-action@v1
         with:
+          # OAuth認証（Pro/Maxサブスクリプション）またはAPI Key認証をサポート
+          # CLAUDE_CODE_OAUTH_TOKEN が設定されていればそれを使用、なければ ANTHROPIC_API_KEY を使用
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN || secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             このプルリクエストを以下の観点でレビューしてください：
