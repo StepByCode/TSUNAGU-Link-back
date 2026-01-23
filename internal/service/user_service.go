@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+)
+
+// Domain errors
+var (
+	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 type UserService interface {
@@ -36,6 +44,12 @@ func NewUserService(repo repository.UserRepository, jwtSecret string, jwtExpiry 
 }
 
 func (s *userService) CreateUser(ctx context.Context, req *model.CreateUserRequest) (*model.User, error) {
+	// Check if email already exists
+	existingUser, err := s.repo.GetByEmail(ctx, req.Email)
+	if err == nil && existingUser != nil {
+		return nil, ErrUserAlreadyExists
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
@@ -58,13 +72,25 @@ func (s *userService) CreateUser(ctx context.Context, req *model.CreateUserReque
 }
 
 func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*model.User, error) {
-	return s.repo.GetByID(ctx, id)
+	user, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, ErrUserNotFound
+	}
+	return user, nil
 }
 
 func (s *userService) UpdateUser(ctx context.Context, id uuid.UUID, req *model.UpdateUserRequest) (*model.User, error) {
 	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, ErrUserNotFound
+	}
+
+	// Check email uniqueness if email is being updated
+	if req.Email != nil && *req.Email != user.Email {
+		existingUser, err := s.repo.GetByEmail(ctx, *req.Email)
+		if err == nil && existingUser != nil {
+			return nil, ErrUserAlreadyExists
+		}
 	}
 
 	if req.Name != nil {
@@ -93,11 +119,11 @@ func (s *userService) ListUsers(ctx context.Context, limit, offset int) ([]*mode
 func (s *userService) Login(ctx context.Context, req *model.LoginRequest) (*model.LoginResponse, error) {
 	user, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, fmt.Errorf("invalid credentials")
+		return nil, ErrInvalidCredentials
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, fmt.Errorf("invalid credentials")
+		return nil, ErrInvalidCredentials
 	}
 
 	token, err := s.generateJWT(user)

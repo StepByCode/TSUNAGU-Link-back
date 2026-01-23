@@ -6,29 +6,40 @@ import (
 
 	"github.com/StepByCode/TSUNAGU-Link-back/internal/model"
 	"github.com/StepByCode/TSUNAGU-Link-back/internal/service"
+	"github.com/StepByCode/TSUNAGU-Link-back/internal/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 type UserHandler struct {
 	userService service.UserService
+	validator   *validator.Validator
 }
 
-func NewUserHandler(userService service.UserService) *UserHandler {
+func NewUserHandler(userService service.UserService, validator *validator.Validator) *UserHandler {
 	return &UserHandler{
 		userService: userService,
+		validator:   validator,
 	}
 }
 
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	var req model.CreateUserRequest
+
+	// JSON unmarshalling
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return RespondWithError(c, http.StatusBadRequest, "invalid request format")
 	}
 
+	// Validation
+	if errs := h.validator.Validate(&req); errs.HasErrors() {
+		return RespondWithValidationError(c, errs)
+	}
+
+	// Business logic
 	user, err := h.userService.CreateUser(c.Request().Context(), &req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return handleServiceError(c, err)
 	}
 
 	return c.JSON(http.StatusCreated, user)
@@ -38,12 +49,12 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user id"})
+		return RespondWithError(c, http.StatusBadRequest, "invalid user id")
 	}
 
 	user, err := h.userService.GetUser(c.Request().Context(), id)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
+		return handleServiceError(c, err)
 	}
 
 	return c.JSON(http.StatusOK, user)
@@ -53,17 +64,22 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user id"})
+		return RespondWithError(c, http.StatusBadRequest, "invalid user id")
 	}
 
 	var req model.UpdateUserRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return RespondWithError(c, http.StatusBadRequest, "invalid request format")
+	}
+
+	// Validation
+	if errs := h.validator.Validate(&req); errs.HasErrors() {
+		return RespondWithValidationError(c, errs)
 	}
 
 	user, err := h.userService.UpdateUser(c.Request().Context(), id, &req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return handleServiceError(c, err)
 	}
 
 	return c.JSON(http.StatusOK, user)
@@ -73,11 +89,11 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user id"})
+		return RespondWithError(c, http.StatusBadRequest, "invalid user id")
 	}
 
 	if err := h.userService.DeleteUser(c.Request().Context(), id); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return handleServiceError(c, err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -96,7 +112,7 @@ func (h *UserHandler) ListUsers(c echo.Context) error {
 
 	users, err := h.userService.ListUsers(c.Request().Context(), limit, offset)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return handleServiceError(c, err)
 	}
 
 	return c.JSON(http.StatusOK, users)
@@ -105,12 +121,17 @@ func (h *UserHandler) ListUsers(c echo.Context) error {
 func (h *UserHandler) Login(c echo.Context) error {
 	var req model.LoginRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return RespondWithError(c, http.StatusBadRequest, "invalid request format")
+	}
+
+	// Validation
+	if errs := h.validator.Validate(&req); errs.HasErrors() {
+		return RespondWithValidationError(c, errs)
 	}
 
 	response, err := h.userService.Login(c.Request().Context(), &req)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid credentials"})
+		return handleServiceError(c, err)
 	}
 
 	return c.JSON(http.StatusOK, response)

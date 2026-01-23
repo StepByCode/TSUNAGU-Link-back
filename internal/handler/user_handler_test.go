@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/StepByCode/TSUNAGU-Link-back/internal/model"
+	"github.com/StepByCode/TSUNAGU-Link-back/internal/service"
+	"github.com/StepByCode/TSUNAGU-Link-back/internal/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -69,7 +71,8 @@ func (m *MockUserService) Login(ctx context.Context, req *model.LoginRequest) (*
 
 func TestUserHandler_CreateUser(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	reqBody := `{"email":"test@example.com","name":"Test User","password":"password123"}`
@@ -104,7 +107,8 @@ func TestUserHandler_CreateUser(t *testing.T) {
 
 func TestUserHandler_CreateUser_InvalidRequest(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	reqBody := `{"invalid json`
@@ -119,9 +123,69 @@ func TestUserHandler_CreateUser_InvalidRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
+func TestUserHandler_CreateUser_ValidationError_InvalidEmail(t *testing.T) {
+	mockService := new(MockUserService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
+
+	e := echo.New()
+	reqBody := `{"email":"invalid-email","name":"Test User","password":"password123"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/users", strings.NewReader(reqBody))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := handler.CreateUser(c)
+
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "validation failed")
+	assert.Contains(t, rec.Body.String(), "email")
+}
+
+func TestUserHandler_CreateUser_ValidationError_ShortPassword(t *testing.T) {
+	mockService := new(MockUserService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
+
+	e := echo.New()
+	reqBody := `{"email":"test@example.com","name":"Test User","password":"short"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/users", strings.NewReader(reqBody))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := handler.CreateUser(c)
+
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "validation failed")
+	assert.Contains(t, rec.Body.String(), "password")
+}
+
+func TestUserHandler_CreateUser_ValidationError_MissingFields(t *testing.T) {
+	mockService := new(MockUserService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
+
+	e := echo.New()
+	reqBody := `{"email":"","name":"","password":""}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/users", strings.NewReader(reqBody))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := handler.CreateUser(c)
+
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "validation failed")
+}
+
 func TestUserHandler_CreateUser_ServiceError(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	reqBody := `{"email":"test@example.com","name":"Test User","password":"password123"}`
@@ -142,7 +206,8 @@ func TestUserHandler_CreateUser_ServiceError(t *testing.T) {
 
 func TestUserHandler_GetUser(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	userID := uuid.New()
@@ -178,7 +243,8 @@ func TestUserHandler_GetUser(t *testing.T) {
 
 func TestUserHandler_GetUser_InvalidID(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/invalid-id", nil)
@@ -195,7 +261,8 @@ func TestUserHandler_GetUser_InvalidID(t *testing.T) {
 
 func TestUserHandler_GetUser_NotFound(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	userID := uuid.New()
@@ -205,7 +272,8 @@ func TestUserHandler_GetUser_NotFound(t *testing.T) {
 	c.SetParamNames("id")
 	c.SetParamValues(userID.String())
 
-	mockService.On("GetUser", mock.Anything, userID).Return(nil, fmt.Errorf("user not found"))
+	// Use the actual domain error
+	mockService.On("GetUser", mock.Anything, userID).Return(nil, service.ErrUserNotFound)
 
 	err := handler.GetUser(c)
 
@@ -217,7 +285,8 @@ func TestUserHandler_GetUser_NotFound(t *testing.T) {
 
 func TestUserHandler_UpdateUser(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	userID := uuid.New()
@@ -255,7 +324,8 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 
 func TestUserHandler_DeleteUser(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	userID := uuid.New()
@@ -277,7 +347,8 @@ func TestUserHandler_DeleteUser(t *testing.T) {
 
 func TestUserHandler_ListUsers(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users?limit=10&offset=0", nil)
@@ -318,7 +389,8 @@ func TestUserHandler_ListUsers(t *testing.T) {
 
 func TestUserHandler_ListUsers_DefaultPagination(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
@@ -337,7 +409,8 @@ func TestUserHandler_ListUsers_DefaultPagination(t *testing.T) {
 
 func TestUserHandler_Login(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	reqBody := `{"email":"test@example.com","password":"password123"}`
@@ -375,7 +448,8 @@ func TestUserHandler_Login(t *testing.T) {
 
 func TestUserHandler_Login_InvalidCredentials(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	v := validator.NewValidator()
+	handler := NewUserHandler(mockService, v)
 
 	e := echo.New()
 	reqBody := `{"email":"test@example.com","password":"wrongpassword"}`
@@ -384,7 +458,7 @@ func TestUserHandler_Login_InvalidCredentials(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	mockService.On("Login", mock.Anything, mock.AnythingOfType("*model.LoginRequest")).Return(nil, fmt.Errorf("invalid credentials"))
+	mockService.On("Login", mock.Anything, mock.AnythingOfType("*model.LoginRequest")).Return(nil, service.ErrInvalidCredentials)
 
 	err := handler.Login(c)
 
