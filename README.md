@@ -224,7 +224,7 @@ make schema-inspect
   - カバレッジレポート（Codecov）
 
 #### Claude PR Review（自動コードレビュー）
-- **トリガー**: PRの作成・更新、または`@claude`メンション
+- **トリガー**: PRに`claude-review`ラベルを追加、または`@claude`メンション
 - **実行内容**:
   - コード品質チェック
   - セキュリティ脆弱性の検出
@@ -257,7 +257,13 @@ Claude AIによる自動PRレビューを有効にするには：
    - GitHub Settings → Secrets and variables → Actions
    - `ANTHROPIC_API_KEY`を追加（Anthropic APIキー）
 
-3. **PRで`@claude`をメンションしてレビューを依頼**:
+3. **レビューの依頼方法**:
+
+   **方法A: ラベルを追加（推奨）**
+   - PRに`claude-review`ラベルを追加するとレビューが自動実行されます
+   - ラベルがない場合は[リポジトリ設定](https://github.com/settings)でラベルを作成してください
+
+   **方法B: @claudeメンション**
    ```
    @claude このPRをレビューしてください
    ```
