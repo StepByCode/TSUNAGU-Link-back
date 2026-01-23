@@ -1,3 +1,5 @@
-h1:tSSaodwWhN/dCWR3QdPNRQDYCy1JF8WHlSKXWKAxWeE=
+h1:ci03WHy7AUpoL0HJMtd/V1giRm3+FFRRiXnaWe9GnuU=
 000001_create_users_table.up.sql h1:Maa+a9fBf0qtjCAF6Iu33vSZGG1sCvkfmjEtA0hhG54=
 20260111145333_migration_20260111_235332.up.sql h1:pbt4/tqIUGaPBUl1M6Og5vgrRfYtaLIjBfwoJBscERM=
+20260116111306_database-migrate.up.sql h1:mrAw7aTv6QQcRgK7HR6OXAsWC45UR6j5h14I6qYemO0=
+20260123113028_schema_update.up.sql h1:fqCBal4lKTkBGAlmommhdWeYDmgsOYlRF2QJl75J1tM=
