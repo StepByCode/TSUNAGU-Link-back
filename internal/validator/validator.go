@@ -2,7 +2,7 @@ package validator
 
 import (
 	"fmt"
-	"strings"
+	"unicode"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -41,8 +41,12 @@ func (v *Validator) Validate(data interface{}) ValidationErrors {
 	// Convert validator.ValidationErrors to our custom format
 	for _, fieldErr := range validationErrs {
 		fieldName := fieldErr.Field()
-		// Convert field name to lowercase for JSON consistency
-		fieldName = strings.ToLower(string(fieldName[0])) + fieldName[1:]
+		// Convert field name to lowercase for JSON consistency (unicode-safe)
+		if len(fieldName) > 0 {
+			runes := []rune(fieldName)
+			runes[0] = unicode.ToLower(runes[0])
+			fieldName = string(runes)
+		}
 
 		errs[fieldName] = FieldError{
 			Message: v.formatErrorMessage(fieldErr),
