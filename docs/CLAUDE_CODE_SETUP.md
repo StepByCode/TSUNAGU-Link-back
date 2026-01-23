@@ -49,32 +49,67 @@ claude
 
 1. **ローカルでOAuthトークンを生成**:
    ```bash
+   # Claude Code CLIでトークンを生成
    claude setup-token
    ```
+
+   実行すると以下のような出力が表示されます：
+   ```
+   ✓ OAuth token generated successfully!
+
+   Token: claude_oauth_1234567890abcdef...
+
+   This token allows Claude Code to access your Claude Pro/Max subscription.
+   Copy the token above and add it to your GitHub repository secrets.
+   ```
+
    ※Claude Pro/Maxユーザーのみ利用可能
 
-2. **GitHubシークレットに追加**:
-   - GitHub Settings → Secrets and variables → Actions
-   - **New repository secret**をクリック
-   - 以下を設定：
+2. **トークンをコピー**:
+   - 上記の出力からトークン全体をコピー（`claude_oauth_`で始まる文字列）
+   - **前後のスペースや改行を含めないよう注意**
+
+3. **GitHubシークレットに追加**:
+   - リポジトリの **Settings** → **Secrets and variables** → **Actions** に移動
+   - **New repository secret** をクリック
+   - 以下を**正確に**入力：
 
    | Name | Value |
    |------|-------|
-   | `CLAUDE_CODE_OAUTH_TOKEN` | 生成されたOAuthトークン |
+   | `CLAUDE_CODE_OAUTH_TOKEN` | コピーしたトークン（`claude_oauth_`で始まる） |
+
+   **重要**: シークレット名は大文字小文字を区別します。必ず `CLAUDE_CODE_OAUTH_TOKEN` と入力してください。
 
 #### 方法B: API Key認証（従量課金）
 
 1. **Anthropic APIキーを取得**:
-   - [Anthropic Console](https://console.anthropic.com/)でAPIキーを生成
+   - [Anthropic Console](https://console.anthropic.com/)にアクセス
+   - アカウントにログインまたは新規登録
+   - **API Keys** セクションに移動
+   - **Create Key** をクリック
+   - キーに名前をつける（例: `github-actions`）
+   - 生成されたAPIキーをコピー
 
-2. **GitHubシークレットに追加**:
-   - GitHub Settings → Secrets and variables → Actions
-   - **New repository secret**をクリック
-   - 以下を設定：
+   APIキーの形式: `sk-ant-api03-...` のように `sk-ant-` で始まります
+
+2. **APIキーをコピー**:
+   - **一度しか表示されない**ので、必ずコピーしてください
+   - **前後のスペースや改行を含めないよう注意**
+
+3. **GitHubシークレットに追加**:
+   - リポジトリの **Settings** → **Secrets and variables** → **Actions** に移動
+   - **New repository secret** をクリック
+   - 以下を**正確に**入力：
 
    | Name | Value |
    |------|-------|
-   | `ANTHROPIC_API_KEY` | AnthropicコンソールのAPIキー |
+   | `ANTHROPIC_API_KEY` | コピーしたAPIキー（`sk-ant-`で始まる） |
+
+   **重要**: シークレット名は大文字小文字を区別します。必ず `ANTHROPIC_API_KEY` と入力してください。
+
+4. **クレジットの確認**:
+   - [Anthropic Console](https://console.anthropic.com/)の **Billing** で残高を確認
+   - GitHub Actionsでの使用には従量課金が発生します
 
 #### 認証方法の比較
 
@@ -168,6 +203,25 @@ Claudeは以下の観点でレビューを行います：
 
 ## トラブルシューティング
 
+### シークレットが正しく設定されているか確認する方法
+
+GitHub Actionsのシークレットは、設定後に値を確認できません（セキュリティのため）。正しく設定されているか確認するには：
+
+1. **シークレットの存在確認**:
+   - Settings → Secrets and variables → Actions
+   - `CLAUDE_CODE_OAUTH_TOKEN` または `ANTHROPIC_API_KEY` が表示されているか確認
+   - 最終更新日時を確認
+
+2. **シークレット名の確認**:
+   - 名前が**正確に** `CLAUDE_CODE_OAUTH_TOKEN` または `ANTHROPIC_API_KEY` か確認
+   - 大文字小文字を区別します（`claude_code_oauth_token` は無効）
+   - 余分なスペースがないか確認
+
+3. **値の確認**:
+   - OAuth token: `claude_oauth_` で始まる
+   - API key: `sk-ant-` で始まる
+   - 再設定する場合は、古いシークレットを削除して新規作成
+
 ### ワークフローが実行されない
 
 1. **権限の確認**:
@@ -175,11 +229,89 @@ Claudeは以下の観点でレビューを行います：
    - "Read and write permissions"が有効になっているか確認
 
 2. **シークレットの確認**:
-   - `ANTHROPIC_API_KEY`が正しく設定されているか確認
+   - 上記「シークレットが正しく設定されているか確認する方法」を参照
 
 3. **ワークフローファイルの確認**:
-   - `.github/workflows/claude-review.yml`が存在するか確認
+   - `.github/workflows/claude-review.yml`がmainブランチにマージされているか確認
    - YAMLの構文エラーがないか確認
+
+### 認証エラー (authentication_failed / Invalid API key)
+
+```
+"error": "authentication_failed"
+"result": "Invalid API key · Fix external API key"
+```
+
+このエラーは認証トークンが無効または設定されていない時に発生します。
+
+**原因と対処法：**
+
+#### 原因1: シークレットが設定されていない
+
+**確認方法：**
+- Settings → Secrets and variables → Actions
+- `CLAUDE_CODE_OAUTH_TOKEN` または `ANTHROPIC_API_KEY` が存在するか確認
+
+**対処法：**
+- 上記「認証方法の選択」に従ってシークレットを設定
+
+#### 原因2: 間違ったシークレット名
+
+**確認方法：**
+- シークレット名が**正確に**以下のいずれかか確認：
+  - `CLAUDE_CODE_OAUTH_TOKEN` (OAuth認証の場合)
+  - `ANTHROPIC_API_KEY` (API Key認証の場合)
+- 大文字小文字を区別します
+
+**対処法：**
+- 間違った名前のシークレットを削除
+- 正しい名前で再作成
+
+#### 原因3: 無効なトークン/APIキー
+
+**確認方法：**
+- OAuth token: `claude setup-token` を実行して新しいトークンを生成
+- API key: [Anthropic Console](https://console.anthropic.com/)でキーの状態を確認
+
+**対処法：**
+
+**OAuth認証の場合:**
+```bash
+# 新しいトークンを生成
+claude setup-token
+
+# 出力されたトークンをコピー
+# Settings → Secrets and variables → Actions
+# CLAUDE_CODE_OAUTH_TOKEN を更新
+```
+
+**API Key認証の場合:**
+```bash
+# Anthropic Consoleで新しいAPIキーを生成
+# Settings → Secrets and variables → Actions
+# ANTHROPIC_API_KEY を更新
+```
+
+#### 原因4: トークンとキーの混同
+
+**確認方法：**
+- `CLAUDE_CODE_OAUTH_TOKEN` に API key (`sk-ant-`で始まる) を設定していないか
+- `ANTHROPIC_API_KEY` に OAuth token (`claude_oauth_`で始まる) を設定していないか
+
+**対処法：**
+- 正しい組み合わせで再設定：
+  - `CLAUDE_CODE_OAUTH_TOKEN` → `claude_oauth_`で始まる
+  - `ANTHROPIC_API_KEY` → `sk-ant-`で始まる
+
+#### 原因5: クレジット不足（API Key認証の場合）
+
+**確認方法：**
+- [Anthropic Console](https://console.anthropic.com/) → Billing
+- クレジット残高を確認
+
+**対処法：**
+- クレジットをチャージ
+- または OAuth認証に切り替え（Pro/Maxユーザーの場合）
 
 ### Claude Code プロセスエラー（exit code 1）
 
@@ -187,34 +319,23 @@ Claudeは以下の観点でレビューを行います：
 error: Claude Code process exited with code 1
 ```
 
-このエラーは認証やAPI接続の問題で発生することが多いです。
+このエラーは上記の認証エラーで発生することが多いです。
 
 **対処法：**
 
-1. **認証トークンの再生成**:
-   ```bash
-   # OAuth認証の場合
-   claude setup-token
+1. まず「認証エラー」セクションの対処法を試す
 
-   # 生成されたトークンをGitHubシークレットに再設定
-   ```
-
-2. **シークレット名の確認**:
-   - `CLAUDE_CODE_OAUTH_TOKEN` または `ANTHROPIC_API_KEY` の名前が正確か確認
-   - 余分なスペースや改行が含まれていないか確認
-
-3. **API制限の確認**:
-   - Anthropicアカウントのクレジット残高を確認
-   - レート制限に達していないか確認
-   - [Anthropic Console](https://console.anthropic.com/)でAPIステータスを確認
-
-4. **ワークフローログの確認**:
+2. **ワークフローログの確認**:
    - Actions → 該当のワークフロー実行 → "Claude Code Review"ステップ
-   - `show_full_output: true` が有効になっているため、詳細なエラー情報を確認可能
+   - エラーメッセージを確認（`show_full_output: true` で詳細表示）
 
-5. **PRサイズの確認**:
+3. **PRサイズの確認**:
    - 変更ファイル数が多すぎる場合は分割を検討
    - 大きなバイナリファイルが含まれていないか確認
+
+4. **GitHub Actions の状態確認**:
+   - [GitHub Status](https://www.githubstatus.com/)でサービス状態を確認
+   - Anthropic APIの状態を確認
 
 ### APIキーのエラー
 

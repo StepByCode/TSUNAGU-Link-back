@@ -248,14 +248,19 @@ Claude AIによる自動PRレビューを有効にするには：
    ```bash
    # OAuthトークンを生成
    claude setup-token
+   # 出力されたトークン（claude_oauth_で始まる）をコピー
    ```
-   - GitHub Settings → Secrets and variables → Actions
-   - `CLAUDE_CODE_OAUTH_TOKEN`を追加（生成されたトークン）
-   - サブスクリプション内で動作するため、追加料金不要
+   GitHubシークレットに追加：
+   - Settings → Secrets and variables → Actions → New repository secret
+   - Name: `CLAUDE_CODE_OAUTH_TOKEN` （正確に入力）
+   - Value: コピーしたトークン
+   - ✨ サブスクリプション内で動作、追加料金不要
 
    **方法B: API Key認証（従量課金）**
-   - GitHub Settings → Secrets and variables → Actions
-   - `ANTHROPIC_API_KEY`を追加（Anthropic APIキー）
+   - [Anthropic Console](https://console.anthropic.com/)でAPIキー（sk-ant-で始まる）を取得
+   - Settings → Secrets and variables → Actions → New repository secret
+   - Name: `ANTHROPIC_API_KEY` （正確に入力）
+   - Value: 取得したAPIキー
 
 3. **レビューの依頼方法**:
 

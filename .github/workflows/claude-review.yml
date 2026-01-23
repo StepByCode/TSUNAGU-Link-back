@@ -30,6 +30,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Claude Code Review
+        id: claude-review
         uses: anthropics/claude-code-action@v1
         continue-on-error: true
         with:
@@ -87,7 +88,7 @@ jobs:
             良い実装についても積極的にコメントしてください。
 
       - name: レビュー失敗時のコメント
-        if: failure()
+        if: steps.claude-review.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |
@@ -95,17 +96,51 @@ jobs:
 
             Claudeによる自動レビューの実行中にエラーが発生しました。
 
+            ### 🔍 エラー詳細
+            - **実行ログ**: [Actions logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **ステータス**: \`${{ steps.claude-review.outcome }}\`
+
             ### 考えられる原因
-            1. **認証エラー**: \`CLAUDE_CODE_OAUTH_TOKEN\` または \`ANTHROPIC_API_KEY\` が正しく設定されていない
-            2. **API制限**: Anthropic APIのレート制限に達している
-            3. **PRサイズ**: PRの変更が大きすぎる可能性
 
-            ### 対処方法
-            - [Actions logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) で詳細を確認
-            - シークレット設定を確認: Settings → Secrets and variables → Actions
-            - \`@claude\` メンションで手動レビューを試す
+            #### 1. 認証エラー（最も可能性が高い）
+            - \`CLAUDE_CODE_OAUTH_TOKEN\` または \`ANTHROPIC_API_KEY\` が設定されていない
+            - APIキーが無効または期限切れ
+            - OAuth tokenとAPI keyを混同している
 
-            詳細は [セットアップガイド](https://github.com/${{ github.repository }}/blob/main/docs/CLAUDE_CODE_SETUP.md) を参照してください。
+            #### 2. API制限
+            - Anthropic APIのレート制限に達している
+            - アカウントのクレジットが不足している
+
+            #### 3. PRサイズ
+            - PRの変更が大きすぎる可能性
+
+            ### ✅ 対処方法
+
+            #### 認証設定を確認
+
+            **方法A: OAuth認証（Pro/Maxユーザー推奨）**
+            \`\`\`bash
+            # ローカルでトークンを生成
+            claude setup-token
+            \`\`\`
+            生成されたトークンを以下に設定：
+            - Settings → Secrets and variables → Actions
+            - シークレット名: \`CLAUDE_CODE_OAUTH_TOKEN\`
+
+            **方法B: API Key認証**
+            - [Anthropic Console](https://console.anthropic.com/)でAPIキーを取得
+            - Settings → Secrets and variables → Actions
+            - シークレット名: \`ANTHROPIC_API_KEY\`
+            - キーは \`sk-ant-\` で始まる必要があります
+
+            #### 設定後の確認
+            1. シークレットが正しく設定されているか確認
+            2. \`claude-review\` ラベルを一度外して再度追加
+            3. または \`@claude\` メンションで再試行
+
+            ### 📚 詳細情報
+            - [セットアップガイド](https://github.com/${{ github.repository }}/blob/main/docs/CLAUDE_CODE_SETUP.md)
+            - [トラブルシューティング](https://github.com/${{ github.repository }}/blob/main/docs/CLAUDE_CODE_SETUP.md#トラブルシューティング)
             `;
 
             github.rest.issues.createComment({
