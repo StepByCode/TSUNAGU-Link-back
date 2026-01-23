@@ -181,6 +181,41 @@ Claudeは以下の観点でレビューを行います：
    - `.github/workflows/claude-review.yml`が存在するか確認
    - YAMLの構文エラーがないか確認
 
+### Claude Code プロセスエラー（exit code 1）
+
+```
+error: Claude Code process exited with code 1
+```
+
+このエラーは認証やAPI接続の問題で発生することが多いです。
+
+**対処法：**
+
+1. **認証トークンの再生成**:
+   ```bash
+   # OAuth認証の場合
+   claude setup-token
+
+   # 生成されたトークンをGitHubシークレットに再設定
+   ```
+
+2. **シークレット名の確認**:
+   - `CLAUDE_CODE_OAUTH_TOKEN` または `ANTHROPIC_API_KEY` の名前が正確か確認
+   - 余分なスペースや改行が含まれていないか確認
+
+3. **API制限の確認**:
+   - Anthropicアカウントのクレジット残高を確認
+   - レート制限に達していないか確認
+   - [Anthropic Console](https://console.anthropic.com/)でAPIステータスを確認
+
+4. **ワークフローログの確認**:
+   - Actions → 該当のワークフロー実行 → "Claude Code Review"ステップ
+   - `show_full_output: true` が有効になっているため、詳細なエラー情報を確認可能
+
+5. **PRサイズの確認**:
+   - 変更ファイル数が多すぎる場合は分割を検討
+   - 大きなバイナリファイルが含まれていないか確認
+
 ### APIキーのエラー
 
 ```
@@ -190,6 +225,7 @@ Error: Invalid API key
 - Anthropic APIキーが正しく設定されているか確認
 - APIキーの有効期限が切れていないか確認
 - Anthropicアカウントのクレジットが残っているか確認
+- API keyが`sk-ant-`で始まっているか確認（OAuth tokenと混同していないか）
 
 ### レビューが投稿されない
 

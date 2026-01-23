@@ -31,11 +31,13 @@ jobs:
 
       - name: Claude Code Review
         uses: anthropics/claude-code-action@v1
+        continue-on-error: true
         with:
           # OAuth認証（Pro/Maxサブスクリプション）またはAPI Key認証をサポート
           # CLAUDE_CODE_OAUTH_TOKEN が設定されていればそれを使用、なければ ANTHROPIC_API_KEY を使用
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN || secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          show_full_output: true
           prompt: |
             このプルリクエストを以下の観点でレビューしてください：
 
@@ -83,3 +85,32 @@ jobs:
             レビュー結果は日本語で提供してください。
             重大な問題があれば明確に指摘し、改善提案を具体的に示してください。
             良い実装についても積極的にコメントしてください。
+
+      - name: レビュー失敗時のコメント
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## ⚠️ Claude レビューエラー
+
+            Claudeによる自動レビューの実行中にエラーが発生しました。
+
+            ### 考えられる原因
+            1. **認証エラー**: \`CLAUDE_CODE_OAUTH_TOKEN\` または \`ANTHROPIC_API_KEY\` が正しく設定されていない
+            2. **API制限**: Anthropic APIのレート制限に達している
+            3. **PRサイズ**: PRの変更が大きすぎる可能性
+
+            ### 対処方法
+            - [Actions logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) で詳細を確認
+            - シークレット設定を確認: Settings → Secrets and variables → Actions
+            - \`@claude\` メンションで手動レビューを試す
+
+            詳細は [セットアップガイド](https://github.com/${{ github.repository }}/blob/main/docs/CLAUDE_CODE_SETUP.md) を参照してください。
+            `;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
