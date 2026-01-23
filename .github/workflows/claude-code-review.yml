@@ -77,8 +77,8 @@ jobs:
             - ドキュメントの更新
             - 不要なコードの削除
             - コミットメッセージの明確性
-            レビュー結果は日本語で提供してください。
             重大な問題があれば明確に指摘し、改善提案を具体的に示してください。
+            - PR内のスコープ内の指摘とスコープ害の指摘は切り分けてレビューしてください
             良い実装についても積極的にコメントしてください。
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
