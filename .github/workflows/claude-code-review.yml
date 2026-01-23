@@ -38,7 +38,14 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          prompt: |
+            /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+
+            重要な指示: レビューコメントは必ず日本語で記述してください。
+            以下の点に注意してレビューを行ってください：
+            - コードの問題点や改善提案は日本語で明確に説明する
+            - 技術用語は適切な日本語訳または英語（カタカナ表記）を使用する
+            - 具体的な修正例を提示する際も日本語でコメントを付ける
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
