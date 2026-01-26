@@ -11,6 +11,7 @@ import (
 	"github.com/StepByCode/TSUNAGU-Link-back/internal/handler"
 	"github.com/StepByCode/TSUNAGU-Link-back/internal/repository"
 	"github.com/StepByCode/TSUNAGU-Link-back/internal/service"
+	"github.com/StepByCode/TSUNAGU-Link-back/internal/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
@@ -53,9 +54,11 @@ func main() {
 
 	log.Println("Successfully connected to database")
 
+	// Initialize dependencies
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo, cfg.JWT.Secret, cfg.JWT.ExpiryHours)
-	userHandler := handler.NewUserHandler(userService)
+	v := validator.NewValidator()
+	userHandler := handler.NewUserHandler(userService, v)
 
 	e := echo.New()
 

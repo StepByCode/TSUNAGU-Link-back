@@ -68,6 +68,8 @@ func TestUserService_CreateUser(t *testing.T) {
 		Password: "password123",
 	}
 
+	// Mock: email doesn't exist (returns error)
+	mockRepo.On("GetByEmail", ctx, req.Email).Return(nil, fmt.Errorf("not found"))
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.User")).Return(nil)
 
 	user, err := service.CreateUser(ctx, req)
@@ -95,6 +97,8 @@ func TestUserService_CreateUser_Error(t *testing.T) {
 		Password: "password123",
 	}
 
+	// Mock: email doesn't exist
+	mockRepo.On("GetByEmail", ctx, req.Email).Return(nil, fmt.Errorf("not found"))
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*model.User")).Return(fmt.Errorf("db error"))
 
 	user, err := service.CreateUser(ctx, req)
@@ -152,6 +156,8 @@ func TestUserService_UpdateUser(t *testing.T) {
 	}
 
 	mockRepo.On("GetByID", ctx, userID).Return(existingUser, nil)
+	// Mock: new email doesn't exist (returns error)
+	mockRepo.On("GetByEmail", ctx, newEmail).Return(nil, fmt.Errorf("not found"))
 	mockRepo.On("Update", ctx, mock.AnythingOfType("*model.User")).Return(nil)
 
 	user, err := service.UpdateUser(ctx, userID, req)
