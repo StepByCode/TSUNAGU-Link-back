@@ -42,10 +42,21 @@ table "users" {
   schema = schema.users
   column "id" {
     type    = uuid
-    default = sql("gen_random_uuid()")  # ← ここ修正したよ♡
+    default = sql("gen_random_uuid()")
   }
   column "email" {
     type = text
+  }
+  column "password" {
+    type = text
+  }
+  column "created_at" {
+    type    = timestamptz
+    default = sql("now()")
+  }
+  column "updated_at" {
+    type    = timestamptz
+    default = sql("now()")
   }
   primary_key {
     columns = [column.id]
